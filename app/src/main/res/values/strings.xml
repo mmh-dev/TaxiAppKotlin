@@ -1,0 +1,21 @@
+<resources>
+	<string name="app_name">TaxiAppKotlin</string>
+	<string name="driver_app">Driver App</string>
+	<string name="sign_up">SIGN UP</string>
+	<string name="sign_in">SIGN IN</string>
+	<string name="customer_app">Customer App</string>
+	<string name="looking_for_customer_app">looking for customer app?</string>
+	<string name="looking_for_driver_app">looking for driver app?</string>
+	<string name="please_use_email_to_register">Please, use email to register</string>
+	<string name="password">Password</string>
+	<string name="phone">Phone</string>
+	<string name="username">Username</string>
+	<string name="email">Email</string>
+	<string name="sign_in_message">Please, use username to sign in</string>
+	<string name="title_activity_customer_maps">CustomerMapsActivity</string>
+	<string name="title_activity_driver_maps">DriverMapsActivity</string>
+	<string name="car">Car</string>
+	<string name="get_taxi">get taxi</string>
+	<string name="order_created">Order is created!</string>
+	<string name="nearby_requests">Nearby requests</string>
+</resources>
