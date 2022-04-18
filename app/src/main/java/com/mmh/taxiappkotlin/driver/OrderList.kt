@@ -13,6 +13,7 @@ import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.*
+import com.google.gson.Gson
 import com.mmh.taxiappkotlin.App
 import com.mmh.taxiappkotlin.api.RetrofitBuilder
 import com.mmh.taxiappkotlin.customer.CustomerRegisterActivity
@@ -53,20 +54,22 @@ class OrderList : AppCompatActivity(), LocationListener {
             return
         }
 
-        binding.exitBtn.setOnClickListener {
-            val editor = App.pref?.edit()
-            editor?.clear()
-            editor?.apply()
-            toast("Good bye!")
-            startActivity(Intent(this@OrderList, DriverRegisterActivity::class.java))
+        binding.apply {
+            exitBtn.setOnClickListener {
+                val editor = App.pref?.edit()
+                editor?.clear()
+                editor?.apply()
+                toast("Good bye!")
+                startActivity(Intent(this@OrderList, DriverRegisterActivity::class.java))
+            }
         }
+
         val api = RetrofitBuilder.api.getOrders()
         api.enqueue(object : Callback<GetOrderResponse> {
             override fun onResponse(call: Call<GetOrderResponse>, response: Response<GetOrderResponse>) {
                 if (response.isSuccessful) {
                     orderList.clear()
                     orderList.addAll(response.body()?.orderList!!)
-                    toast("orderlist is get")
                 }
             }
 
@@ -99,14 +102,21 @@ class OrderList : AppCompatActivity(), LocationListener {
             }
         }
         fusedLocationProviderClient?.requestLocationUpdates(locationRequest!!, locationCallback!!, Looper.getMainLooper())
+
+        binding.orderListView.setOnItemClickListener { adapterView, itemView, position, id ->
+            val selectedOrder = orderList[position]
+            val intent = Intent(this@OrderList, DriverMapsActivity::class.java)
+            val json = Gson().toJson(selectedOrder)
+            intent.putExtra("selectedOrder", json)
+            startActivity(intent)
+        }
     }
     private fun buildLocationRequest() {
         locationRequest = LocationRequest()
         locationRequest?.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
         locationRequest?.interval = 100
     }
-
-
+    
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
