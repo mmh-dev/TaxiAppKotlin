@@ -12,7 +12,7 @@ import com.mmh.taxiappkotlin.R
 import com.mmh.taxiappkotlin.api.RetrofitBuilder
 import com.mmh.taxiappkotlin.databinding.ActivityCustomerRegisterBinding
 import com.mmh.taxiappkotlin.driver.DriverRegisterActivity
-import com.mmh.taxiappkotlin.entities.CreateUserResponse
+import com.mmh.taxiappkotlin.entities.ServerResponse
 import com.mmh.taxiappkotlin.entities.SignInResponse
 import com.mmh.taxiappkotlin.entities.User
 import com.mmh.taxiappkotlin.utils.toast
@@ -65,10 +65,10 @@ class CustomerRegisterActivity : AppCompatActivity() {
                         user.password = password.text.toString().trim()
                         user.userType = "customer"
                         val api = RetrofitBuilder.api.createUser(user)
-                        api.enqueue(object: Callback<CreateUserResponse>{
+                        api.enqueue(object: Callback<ServerResponse>{
                             override fun onResponse(
-                                call: Call<CreateUserResponse>,
-                                response: Response<CreateUserResponse>
+                                call: Call<ServerResponse>,
+                                response: Response<ServerResponse>
                             ) {
                                 if (response.isSuccessful) {
                                     toast("New user ${user.username} is created!")
@@ -82,7 +82,7 @@ class CustomerRegisterActivity : AppCompatActivity() {
                                 }
                             }
 
-                            override fun onFailure(call: Call<CreateUserResponse>, t: Throwable) {
+                            override fun onFailure(call: Call<ServerResponse>, t: Throwable) {
                                 Log.d("fail", t.message.toString())
                             }
                         })

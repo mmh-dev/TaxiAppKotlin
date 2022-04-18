@@ -25,9 +25,9 @@ import com.mmh.taxiappkotlin.App
 import com.mmh.taxiappkotlin.R
 import com.mmh.taxiappkotlin.api.RetrofitBuilder
 import com.mmh.taxiappkotlin.databinding.ActivityCustomerMapsBinding
-import com.mmh.taxiappkotlin.entities.CreateUserResponse
 import com.mmh.taxiappkotlin.entities.GeoPoint
 import com.mmh.taxiappkotlin.entities.Order
+import com.mmh.taxiappkotlin.entities.ServerResponse
 import com.mmh.taxiappkotlin.utils.toast
 import retrofit2.Call
 import retrofit2.Callback
@@ -77,14 +77,14 @@ class CustomerMapsActivity : AppCompatActivity(), OnMapReadyCallback, LocationLi
             order.phone = App.pref?.getString("phone", "")
 
             val api = RetrofitBuilder.api.createOrder(order)
-            api.enqueue(object: Callback<CreateUserResponse>{
-                override fun onResponse(call: Call<CreateUserResponse>, response: Response<CreateUserResponse>) {
+            api.enqueue(object: Callback<ServerResponse>{
+                override fun onResponse(call: Call<ServerResponse>, response: Response<ServerResponse>) {
                     if (response.isSuccessful) {
                         toast(getString(R.string.order_created))
                     }
                 }
 
-                override fun onFailure(call: Call<CreateUserResponse>, t: Throwable) {
+                override fun onFailure(call: Call<ServerResponse>, t: Throwable) {
                     TODO("Not yet implemented")
                 }
 

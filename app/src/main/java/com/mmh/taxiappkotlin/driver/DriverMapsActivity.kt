@@ -2,19 +2,18 @@ package com.mmh.taxiappkotlin.driver
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.net.Uri
 import android.os.Bundle
 import android.os.Looper
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.*
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
@@ -22,8 +21,14 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.google.gson.Gson
 import com.mmh.taxiappkotlin.App
 import com.mmh.taxiappkotlin.R
+import com.mmh.taxiappkotlin.api.RetrofitBuilder
 import com.mmh.taxiappkotlin.databinding.ActivityDriverMapsBinding
 import com.mmh.taxiappkotlin.entities.Order
+import com.mmh.taxiappkotlin.entities.ServerResponse
+import com.mmh.taxiappkotlin.utils.toast
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 
 class DriverMapsActivity : AppCompatActivity(), OnMapReadyCallback, LocationListener {
@@ -47,7 +52,7 @@ class DriverMapsActivity : AppCompatActivity(), OnMapReadyCallback, LocationList
         binding = ActivityDriverMapsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val mapFragment = supportFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
+        val mapFragment = supportFragmentManager.findFragmentById(R.id.driverMap) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
         val json = intent.getStringExtra("selectedOrder")  // as String
@@ -56,10 +61,36 @@ class DriverMapsActivity : AppCompatActivity(), OnMapReadyCallback, LocationList
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this)
         buildLocationRequest()
 
+        binding.exitBtnDriver.setOnClickListener {
+            val editor = App.pref?.edit()
+            editor?.clear()
+            editor?.apply()
+            toast("Good bye!")
+            startActivity(Intent(this@DriverMapsActivity, DriverRegisterActivity::class.java))
+        }
+
+
         binding.acceptRequest.setOnClickListener {
             selectedOrder.isTaken = true
             selectedOrder.driver = App.pref?.getString("userName", "")
             selectedOrder.phone = App.pref?.getString("phone", "")
+            val api = RetrofitBuilder.api.updateOrder(selectedOrder.objectId!!, selectedOrder)
+            api.enqueue(object: Callback<ServerResponse>{
+                override fun onResponse(
+                    call: Call<ServerResponse>,
+                    response: Response<ServerResponse>
+                ) {
+                    toast("Order is accepted by driver ${selectedOrder.driver}")
+                    val uri = "google.navigation:q=" + selectedOrder.location?.latitude + "," + selectedOrder.location?.longitude + "&mode=d"
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri))
+                    intent.setPackage("com.google.android.apps.maps")
+                    startActivity(intent)
+                }
+
+                override fun onFailure(call: Call<ServerResponse>, t: Throwable) {
+                }
+
+            })
 
         }
 
@@ -78,7 +109,6 @@ class DriverMapsActivity : AppCompatActivity(), OnMapReadyCallback, LocationList
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1)
             return
         }
-        mMap.isMyLocationEnabled = true
 
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
@@ -91,12 +121,14 @@ class DriverMapsActivity : AppCompatActivity(), OnMapReadyCallback, LocationList
                     mMap.addMarker(MarkerOptions().position(driverPosition).title("Your are here!").icon(
                         BitmapDescriptorFactory.fromResource(R.drawable.destination_marker)))
                     mMap.addMarker(MarkerOptions().position(customerPosition).title("Customer is here!").icon(BitmapDescriptorFactory.fromResource(R.drawable.marker)))
+
                     val builder = LatLngBounds.Builder()
                     builder.include(driverPosition)
                     builder.include(customerPosition)
-                    val width = resources.displayMetrics.widthPixels
-                    val height = resources.displayMetrics.heightPixels
-                    mMap.animateCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), width, height, 300))
+                    val bounds = builder.build()
+                    val padding = 300
+                    val cu = CameraUpdateFactory.newLatLngBounds(bounds, padding)
+                    mMap.animateCamera(cu)
                 }
 
             }
