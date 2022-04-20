@@ -73,7 +73,7 @@ class DriverMapsActivity : AppCompatActivity(), OnMapReadyCallback, LocationList
         binding.acceptRequest.setOnClickListener {
             selectedOrder.isTaken = true
             selectedOrder.driver = App.pref?.getString("userName", "")
-            selectedOrder.phone = App.pref?.getString("phone", "")
+//            selectedOrder.phone = App.pref?.getString("phone", "")
             val api = RetrofitBuilder.api.updateOrder(selectedOrder.objectId!!, selectedOrder)
             api.enqueue(object: Callback<ServerResponse>{
                 override fun onResponse(

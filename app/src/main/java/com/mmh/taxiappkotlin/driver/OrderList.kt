@@ -13,17 +13,23 @@ import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.google.android.gms.location.*
+import com.google.android.gms.maps.model.LatLng
 import com.google.gson.Gson
 import com.mmh.taxiappkotlin.App
+import com.mmh.taxiappkotlin.api.MapsRetrofitBuilder
 import com.mmh.taxiappkotlin.api.RetrofitBuilder
 import com.mmh.taxiappkotlin.customer.CustomerRegisterActivity
 import com.mmh.taxiappkotlin.databinding.ActivityOrderListBinding
 import com.mmh.taxiappkotlin.entities.GetOrderResponse
+import com.mmh.taxiappkotlin.entities.MapsResponse
 import com.mmh.taxiappkotlin.entities.Order
+import com.mmh.taxiappkotlin.utils.API_KEY
+import com.mmh.taxiappkotlin.utils.MAPS_URL
 import com.mmh.taxiappkotlin.utils.toast
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import java.lang.StringBuilder
 
 class OrderList : AppCompatActivity(), LocationListener {
 
@@ -31,9 +37,11 @@ class OrderList : AppCompatActivity(), LocationListener {
     private var requestList: ArrayList<String> = ArrayList()
     private var orderList: ArrayList<Order> = ArrayList()
     var driverLocation = Location("")
+    var userLocation = Location("")
     var fusedLocationProviderClient: FusedLocationProviderClient? = null
     var locationRequest: LocationRequest? = null
     var locationCallback: LocationCallback? = null
+    var distance: String = ""
 
     private val binding: ActivityOrderListBinding by lazy {
         ActivityOrderListBinding.inflate(layoutInflater)
@@ -88,12 +96,14 @@ class OrderList : AppCompatActivity(), LocationListener {
                     driverLocation = location
                     requestList.clear()
                     for (order in orderList) {
-                        val userLocation = Location("")
                         userLocation.latitude = order.location?.latitude!!
                         userLocation.longitude = order.location?.longitude!!
-                        val distance = (driverLocation.distanceTo(userLocation) / 1000).toFloat()
-                        val distanceF = String.format("%.02f", distance) as String
-                        requestList.add("$distanceF км")
+//                        val distance = (driverLocation.distanceTo(userLocation) / 1000).toFloat()
+//                        val distanceF = String.format("%.02f", distance) as String
+//                        requestList.add("$distanceF км")
+                        getNavigationDistance()
+                        val str = "$distance км"
+                        requestList.add(str)
                     }
                     adapter = ArrayAdapter(this@OrderList, android.R.layout.simple_list_item_activated_1, requestList)
                     binding.orderListView.adapter = adapter
@@ -132,5 +142,21 @@ class OrderList : AppCompatActivity(), LocationListener {
 
     override fun onLocationChanged(location: Location) {
         driverLocation = location
+    }
+
+    fun getNavigationDistance() {
+        val api = MapsRetrofitBuilder.mapsApi.getRoute(
+            "46.482525, 30.723309", "42.027973, 35.151726", API_KEY, true, "ru", "ferries")
+        api.enqueue(object : Callback<MapsResponse> {
+            override fun onResponse(call: Call<MapsResponse>, response: Response<MapsResponse>) {
+                if (response.isSuccessful) {
+                    distance = response.body()!!.routes[0].legs[0].distance.text as String
+                }
+            }
+
+            override fun onFailure(call: Call<MapsResponse>, t: Throwable) {
+                toast("order request is failed")
+            }
+        })
     }
 }

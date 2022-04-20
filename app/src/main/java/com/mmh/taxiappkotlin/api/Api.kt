@@ -1,5 +1,6 @@
 package com.mmh.taxiappkotlin.api
 
+import com.google.android.gms.maps.model.LatLng
 import com.mmh.taxiappkotlin.entities.*
 import retrofit2.Call
 import retrofit2.http.*
@@ -27,6 +28,16 @@ interface Api {
         @Path("objectId") objectId: String,
         @Body order: Order
     ): Call<ServerResponse>
+
+    @GET("json")
+    fun getRoute(
+        @Query("origin") origin: String,
+        @Query("destination") destination: String,
+        @Query("key") key: String,
+        @Query("alternatives") alternatives: Boolean,
+        @Query("language") language: String,
+        @Query("avoid") avoid: String
+    ): Call<MapsResponse>
 
 
 }

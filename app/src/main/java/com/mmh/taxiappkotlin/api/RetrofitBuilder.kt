@@ -23,9 +23,9 @@ object RetrofitBuilder {
         return@Interceptor chain.proceed(request)
     }
 
-    val httpLoggingInterceptor = HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
+    private val httpLoggingInterceptor = HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
 
-    val client = OkHttpClient.Builder()
+    private val client = OkHttpClient.Builder()
         .addInterceptor(requestInterceptor)
         .addInterceptor(httpLoggingInterceptor)
         .connectTimeout(30, TimeUnit.SECONDS)
@@ -33,11 +33,11 @@ object RetrofitBuilder {
         .writeTimeout(30, TimeUnit.SECONDS)
         .build()
 
-    val builder = Retrofit.Builder().baseUrl(SERVER_URL)
+    private val builder: Retrofit = Retrofit.Builder().baseUrl(SERVER_URL)
     .client(client)
     .addConverterFactory(GsonConverterFactory.create())
     .build()
 
-    val api = builder.create(Api::class.java)
+    val api: Api = builder.create(Api::class.java)
 
 }
