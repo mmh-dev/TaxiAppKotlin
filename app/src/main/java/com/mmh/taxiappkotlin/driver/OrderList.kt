@@ -12,6 +12,8 @@ import android.os.Looper
 import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.model.LatLng
 import com.google.gson.Gson
@@ -42,6 +44,7 @@ class OrderList : AppCompatActivity(), LocationListener {
     var locationRequest: LocationRequest? = null
     var locationCallback: LocationCallback? = null
     var distance: String = ""
+    var livedata = MutableLiveData<ArrayList<String>>()
 
     private val binding: ActivityOrderListBinding by lazy {
         ActivityOrderListBinding.inflate(layoutInflater)
@@ -60,6 +63,13 @@ class OrderList : AppCompatActivity(), LocationListener {
                 this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1)
             return
+        }
+
+        livedata.value = requestList
+        livedata.observe(this) {
+            requestList = it
+            adapter = ArrayAdapter(this@OrderList, android.R.layout.simple_list_item_activated_1, requestList)
+            binding.orderListView.adapter = adapter
         }
 
         binding.apply {
@@ -102,11 +112,7 @@ class OrderList : AppCompatActivity(), LocationListener {
 //                        val distanceF = String.format("%.02f", distance) as String
 //                        requestList.add("$distanceF км")
                         getNavigationDistance()
-                        val str = "$distance км"
-                        requestList.add(str)
                     }
-                    adapter = ArrayAdapter(this@OrderList, android.R.layout.simple_list_item_activated_1, requestList)
-                    binding.orderListView.adapter = adapter
                 }
 
             }
@@ -151,6 +157,9 @@ class OrderList : AppCompatActivity(), LocationListener {
             override fun onResponse(call: Call<MapsResponse>, response: Response<MapsResponse>) {
                 if (response.isSuccessful) {
                     distance = response.body()!!.routes[0].legs[0].distance.text as String
+                    val str = "$distance км"
+                    requestList.add(str)
+                    livedata.value = requestList
                 }
             }
 
